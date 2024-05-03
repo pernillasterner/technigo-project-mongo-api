@@ -49,6 +49,17 @@ app.get("/", (req, res) => {
   });
 });
 
+// Find one book
+app.get("/:title", (req, res) => {
+  Book.findOne({ title: req.params.title }).then((book) => {
+    if (book) {
+      res.json(book);
+    } else {
+      res.status(404).json({ error: "Book not found" });
+    }
+  });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
