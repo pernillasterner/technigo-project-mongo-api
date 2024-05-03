@@ -31,6 +31,15 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+  // Check if conntection is stable
+  if (mongoose.connection.readyState === 1) {
+    next();
+  } else {
+    res.status(503).json({ error: "Service unavailable" });
+  }
+});
+
 // Start defining your routes here
 app.get("/", (req, res) => {
   User.find().then((users) => {
