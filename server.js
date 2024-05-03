@@ -23,6 +23,22 @@ User.deleteMany().then(() => {
   }).save();
 });
 
+const Book = mongoose.model("Book", {
+  title: String,
+  authors: String,
+  average_rating: Number,
+});
+
+Book.deleteMany().then(() => {
+  new Book({
+    title: "Tjena tjea",
+    authors: "Pernilla",
+    average_rating: 4,
+  }).save();
+  new Book({ title: "Bye", authors: "Arne", average_rating: 9 }).save();
+  new Book({ title: "Blur", authors: "Pill", average_rating: 3 }).save();
+});
+
 // Defining the port
 const port = process.env.PORT || 8000;
 const app = express();
@@ -59,6 +75,24 @@ app.get("/users/:id", async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: "Invalid user id" });
   }
+});
+
+// Start defining your routes here
+app.get("/", (req, res) => {
+  Book.find().then((books) => {
+    res.json(books);
+  });
+});
+
+// Find one book
+app.get("/:title", (req, res) => {
+  Book.findOne({ title: req.params.title }).then((book) => {
+    if (book) {
+      res.json(book);
+    } else {
+      res.status(404).json({ error: "Book not found" });
+    }
+  });
 });
 
 // Start the server
