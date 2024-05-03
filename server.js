@@ -3,61 +3,62 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
 
-// If you're using one of our datasets, uncomment the appropriate import below
-// to get started!
-// import avocadoSalesData from "./data/avocado-sales.json";
-// import booksData from "./data/books.json";
-// import goldenGlobesData from "./data/golden-globes.json";
-// import netflixData from "./data/netflix-titles.json";
-// import topMusicData from "./data/top-music.json";
+const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/userExamples";
+mongoose.connect(mongoUrl);
+mongoose.Promise = Promise;
 
-// Defines the port the app will run on. Defaults to 8080, but can be overridden
-// when starting the server. Example command to overwrite PORT env variable value:
-// PORT=9000 npm start
+const User = mongoose.model("User", {
+  name: String,
+});
+
+User.deleteMany().then(() => {
+  new User({
+    name: "Pernilla",
+  }).save();
+  new User({
+    name: "Arne",
+  }).save();
+  new User({
+    name: "Ebba",
+  }).save();
+});
+
+// Defining the port
 const port = process.env.PORT || 8000;
 const app = express();
 
 // Add middlewares to enable cors and json body parsing
 app.use(cors());
-// app.use(express.json());
 app.use(bodyParser.json());
 
-const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/books";
-mongoose.connect(mongoUrl);
-mongoose.Promise = Promise;
-
-const Book = mongoose.model("Book", {
-  title: String,
-  authors: String,
-  average_rating: Number,
-});
-
-Book.deleteMany().then(() => {
-  new Book({
-    title: "Tjena tjea",
-    authors: "Pernilla",
-    average_rating: 4,
-  }).save();
-  new Book({ title: "Bye", authors: "Arne", average_rating: 9 }).save();
-  new Book({ title: "Blur", authors: "Pill", average_rating: 3 }).save();
+app.use((req, res, next) => {
+  // Check if conntection is stable
+  if (mongoose.connection.readyState === 1) {
+    next();
+  } else {
+    res.status(503).json({ error: "Service unavailable" });
+  }
 });
 
 // Start defining your routes here
 app.get("/", (req, res) => {
-  Book.find().then((books) => {
-    res.json(books);
+  User.find().then((users) => {
+    res.json(users);
   });
 });
 
-// Find one book
-app.get("/:title", (req, res) => {
-  Book.findOne({ title: req.params.title }).then((book) => {
-    if (book) {
-      res.json(book);
+// Fetch individual user and handle errors
+app.get("/users/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      res.json(user);
     } else {
-      res.status(404).json({ error: "Book not found" });
+      res.status(404).json({ error: "Invalid user id" });
     }
-  });
+  } catch (err) {
+    res.status(400).json({ error: "Invalid user id" });
+  }
 });
 
 // Start the server
