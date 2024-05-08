@@ -2,10 +2,15 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
+import { Book } from "./models/Book";
 
 const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/userExamples";
 mongoose.connect(mongoUrl);
 mongoose.Promise = Promise;
+
+/*__________ Start Seeding ___________ */
+
+import bookData from "./data/books.json";
 
 const User = mongoose.model("User", {
   name: String,
@@ -13,7 +18,7 @@ const User = mongoose.model("User", {
 
 User.deleteMany().then(() => {
   new User({
-    name: "Pernilla",
+    name: "Anna",
   }).save();
   new User({
     name: "Arne",
@@ -23,21 +28,22 @@ User.deleteMany().then(() => {
   }).save();
 });
 
-const Book = mongoose.model("Book", {
-  title: String,
-  authors: String,
-  average_rating: Number,
-});
+// const Book = mongoose.model("Book", {
+//   title: String,
+//   authors: String,
+//   average_rating: Number,
+// });
 
-Book.deleteMany().then(() => {
-  new Book({
-    title: "Tjena tjea",
-    authors: "Pernilla",
-    average_rating: 4,
-  }).save();
-  new Book({ title: "Bye", authors: "Arne", average_rating: 9 }).save();
-  new Book({ title: "Blur", authors: "Pill", average_rating: 3 }).save();
-});
+// Seed the database with all the books from the book json
+const seedDatabase = async () => {
+  await Book.deleteMany();
+
+  bookData.forEach((book) => {
+    new Book(book).save();
+  });
+};
+
+seedDatabase();
 
 // Defining the port
 const port = process.env.PORT || 8000;
@@ -78,7 +84,7 @@ app.get("/users/:id", async (req, res) => {
 });
 
 // Start defining your routes here
-app.get("/", (req, res) => {
+app.get("/books", (req, res) => {
   Book.find().then((books) => {
     res.json(books);
   });
