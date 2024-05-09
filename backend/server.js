@@ -2,7 +2,54 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
-import { Book } from "./models/Book";
+import { Book } from "./models/bookModel";
+
+// Defining the port
+const port = process.env.PORT || 8000;
+const app = express();
+
+// Add middlewares to enable cors and json body parsing
+app.use(cors());
+app.use(bodyParser.json());
+
+app.use((req, res, next) => {
+  // Check if conntection is stable
+  if (mongoose.connection.readyState === 1) {
+    next();
+  } else {
+    res.status(503).json({ error: "Service unavailable" });
+  }
+});
+
+// Start defining your routes here
+app.get("/", (req, res) => {
+  res.json("Welcome to the Book Store");
+});
+
+// Route for save a new book
+app.post("/books", async (req, res) => {
+  try {
+    if (!req.body.title || !req.body.author || !req.body.publishYear) {
+      return res.status(400).json({
+        message: "Send all required fields: title, author, publishYear",
+      });
+    }
+
+    // Add a new book to the database
+    const newBook = {
+      title: req.body.title,
+      author: req.body.author,
+      publishYear: req.body.publishYear,
+    };
+    // Create a new instans
+    const book = await Book.create(newBook);
+    // Send the new book to the client
+    return res.status(201).send(book);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
 
 const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/bookStore";
 mongoose
@@ -49,28 +96,6 @@ mongoose.Promise = Promise;
 // };
 
 // seedDatabase();
-
-// Defining the port
-const port = process.env.PORT || 8000;
-const app = express();
-
-// Add middlewares to enable cors and json body parsing
-app.use(cors());
-app.use(bodyParser.json());
-
-app.use((req, res, next) => {
-  // Check if conntection is stable
-  if (mongoose.connection.readyState === 1) {
-    next();
-  } else {
-    res.status(503).json({ error: "Service unavailable" });
-  }
-});
-
-// Start defining your routes here
-app.get("/", (req, res) => {
-  res.json("Welcome to the Book Store");
-});
 
 // Fetch individual user and handle errors
 // app.get("/users/:id", async (req, res) => {
