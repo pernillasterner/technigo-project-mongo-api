@@ -66,6 +66,20 @@ app.get("/books", async (req, res) => {
   }
 });
 
+// Route for One Book from DB using ID
+app.get("/books/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const book = await Book.findById(id);
+
+    return res.status(200).json(book);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/bookStore";
 mongoose
   .connect(mongoUrl)
