@@ -21,7 +21,8 @@ app.use((req, res, next) => {
   }
 });
 
-// Start defining your routes here
+//____________ Defining routes____________//
+
 app.get("/", (req, res) => {
   res.json("Welcome to the Book Store");
 });
@@ -29,6 +30,7 @@ app.get("/", (req, res) => {
 // Route for save a new book
 app.post("/books", async (req, res) => {
   try {
+    // Check if new data has following properties
     if (!req.body.title || !req.body.author || !req.body.publishYear) {
       return res.status(400).json({
         message: "Send all required fields: title, author, publishYear",
@@ -44,7 +46,7 @@ app.post("/books", async (req, res) => {
     // Create a new instans
     const book = await Book.create(newBook);
     // Send the new book to the client
-    return res.status(201).send(book);
+    return res.status(201).json(book);
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ message: err.message });
@@ -66,7 +68,7 @@ app.get("/books", async (req, res) => {
   }
 });
 
-// Route for One Book from DB using ID
+// Route for Geting One Book from DB using ID
 app.get("/books/:id", async (req, res) => {
   try {
     // Destructed the id from the param
@@ -81,7 +83,7 @@ app.get("/books/:id", async (req, res) => {
   }
 });
 
-// Route for update a Book
+// Route for Updating a Book
 app.put("/books/:id", async (req, res) => {
   try {
     if (!req.body.title || !req.body.author || !req.body.publishYear) {
@@ -100,7 +102,25 @@ app.put("/books/:id", async (req, res) => {
       return res.status(404).json({ message: "Book not found" });
     }
 
-    return res.status(200).send({ message: "Book updated successfully" });
+    return res.status(200).json({ message: "Book updated successfully" });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Route for Deleting Book
+app.delete("/books/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await Book.findByIdAndDelete(id);
+
+    if (!result) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    return res.status(200).json({ message: "Book successfully deleted" });
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ message: err.message });
