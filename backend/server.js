@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
 import { Book } from "./models/bookModel";
+import listEndpoints from "express-list-endpoints";
 
 // Defining the port
 const port = process.env.PORT || 8000;
@@ -24,7 +25,8 @@ app.use((req, res, next) => {
 //____________ Defining routes____________//
 
 app.get("/", (req, res) => {
-  res.json("Welcome to the Book Store");
+  const endpoints = listEndpoints(app);
+  res.status(200).json(endpoints);
 });
 
 // Route for save a new book
